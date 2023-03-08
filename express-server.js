@@ -41,6 +41,16 @@ const urlDatabase = {
 
 app.use(express.urlencoded({ extended: true }));
 
+//delete button
+app.post("/urls/:id/delete", (req, res) =>{
+  const id = req.params.id;
+  delete urlDatabase[id];
+console.log("deleted URL");
+console.log(req.params);
+
+  res.redirect('/urls');
+});
+
 
 //takes input urls and adds a long $ short url to the database
 app.post("/urls", (req, res) => {
@@ -50,15 +60,14 @@ app.post("/urls", (req, res) => {
   addUrlToDatabase(longUrl, shortUrl);
 
   res.redirect(`/urls/${shortUrl}`);
-  
   // res.send("Ok, we will replace this."); // Respond with 'Ok' (we will replace this)
-
 });
 
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[id];
   res.redirect(longURL);
+
 });
 
 //create new URL page
