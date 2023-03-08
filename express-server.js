@@ -45,8 +45,8 @@ app.use(express.urlencoded({ extended: true }));
 app.post("/urls/:id/delete", (req, res) =>{
   const id = req.params.id;
   delete urlDatabase[id];
-console.log("deleted URL");
-console.log(req.params);
+  console.log("deleted URL");
+  console.log(req.params);
 
   res.redirect('/urls');
 });
@@ -76,12 +76,24 @@ app.get("/urls/new", (req, res) => {
 });
 
 //?? not sure what this one is supposed to do
+//templatevars purpose is using ejs to pass in data from the server end to the client side
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
   res.render("urls_show", templateVars);
+});
+
+//edit url page
+app.post("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  const newUrl = req.body.newUrl;
+  urlDatabase[id] = newUrl;
+
+  res.redirect('/urls');
+//   console.log(req.body);
+// res.end(JSON.stringify(req.body));
 });
 
 //My URLs, Homepage
