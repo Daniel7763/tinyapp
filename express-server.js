@@ -43,6 +43,20 @@ const urlDatabase = {
 
 app.use(express.urlencoded({ extended: true }));
 
+//register
+app.post("/register", (req, res) => {
+  console.log(req.body.username);
+  res.cookie("username", req.body.username);
+  res.redirect('/urls');
+});
+
+app.get("/register", (req, res) => {
+  const id = req.params.id;
+  const longURL = urlDatabase[id];
+  res.render("urls_register");
+
+});
+
 //login
 app.post("/login", (req, res) => {
   console.log(req.body.username);
