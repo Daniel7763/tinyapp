@@ -1,8 +1,10 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080;
 
 app.set("view engine", "ejs");
+app.use(cookieParser());
 
 const generateRandomString = function() {
   let chars = 'abcdefghijklmnopqrstuvwxyz123456789';
@@ -40,6 +42,23 @@ const urlDatabase = {
 // });
 
 app.use(express.urlencoded({ extended: true }));
+
+//login
+app.post("/login", (req, res) => {
+  console.log(req.body.username);
+  res.cookie("username", req.body.username);
+  res.redirect('/urls');
+});
+
+//something to help add the username to index
+app.get("/urls", (req, res) => {
+  console.log(req.cookies);
+  const templateVars = {
+    username: req.cookies["username"],
+    urls:urlDatabase
+  };
+  res.render("urls_index", templateVars);
+});
 
 //delete button
 app.post("/urls/:id/delete", (req, res) =>{
