@@ -21,6 +21,9 @@
 <!-- username login bar on header -->
 <% if(username) { %>
     <p> Logged in as: <%= username %> </p>
+    <form class="form-inline" action="/logout" method="POST">
+        <button type="submit" class="btn btn-primary">Logout</button>
+    </form>
 <% } else { %>
         <form class="form-inline" action="/login" method="POST">
           <div class="form-group mb-2">

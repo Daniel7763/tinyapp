@@ -50,6 +50,12 @@ app.post("/login", (req, res) => {
   res.redirect('/urls');
 });
 
+//logout
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect('/urls');
+});
+
 //something to help add the username to index
 app.get("/urls", (req, res) => {
   console.log(req.cookies);
@@ -91,7 +97,10 @@ app.get("/u/:id", (req, res) => {
 
 //create new URL page
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies["username"],
+  };
+  res.render("urls_new", templateVars);
 });
 
 //?? not sure what this one is supposed to do
@@ -113,18 +122,6 @@ app.post("/urls/:id", (req, res) => {
   res.redirect('/urls');
 //   console.log(req.body);
 // res.end(JSON.stringify(req.body));
-});
-
-//My URLs, Homepage
-app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
-});
-
-//displays a=1
-app.get("/set", (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
 });
  
 
