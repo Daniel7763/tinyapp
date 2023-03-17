@@ -154,7 +154,6 @@ app.post("/urls/:id", (req, res) => {
 //something to help add the username to index
 app.get("/urls", (req, res) => {
   const cookieLogin = req.cookies["user_id"];
-  console.log(users[cookieLogin]);
   const templateVars = {
     user: users[cookieLogin],
     urls: urlDatabase
@@ -169,8 +168,12 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
-//add new url Page
+//add new url Page/redirect to login if not signed in
 app.get("/urls/new", (req, res) => {
+
+  if (!users[req.cookies["user_id"]]) {
+    return res.redirect("/login");
+  }
 
   //line needed for new pages created 1/2
   const cookieLogin = req.cookies["user_id"];
@@ -182,23 +185,42 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-//register button
+//redirect to new page if not logged in
+// app.get("/urls/new", (req, res) => {
+//   if (!users[req.cookies["user_id"]]) {
+//     return res.redirect("/login");
+//   }
+// });
+
+//register button/redirects to urls if logged in
 app.get("/register", (req, res) => {
+
+  if (users[req.cookies["user_id"]]) {
+    return res.redirect("/urls");
+  }
+
   const templateVars = {
     user: null,
   };
   res.render("urls_register", templateVars);
 });
 
-//login button
+//login page/redirects to urls if logged in
 app.get("/login", (req, res) => {
+
+  if (users[req.cookies["user_id"]]) {
+    return res.redirect("/urls");
+  }
+  
   const templateVars = {
     user: null,
   };
+  console.log("user logged out");
   res.render("urls_login", templateVars);
+
 });
 
-//edit url button
+//undefined page
 app.get("/urls/:id", (req, res) => {
   const cookieLogin = req.cookies["user_id"];
   const templateVars = {
@@ -206,7 +228,7 @@ app.get("/urls/:id", (req, res) => {
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
-  res.render("urls_show", templateVars);
+  res.send("this url does not exist");
 });
 
 
