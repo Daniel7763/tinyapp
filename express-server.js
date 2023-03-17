@@ -26,16 +26,14 @@ const addUrlToDatabase = function(longUrl, shortUrl) {
   // console.log(urlDatabase);
 };
 
-//emailSearch function
-const emailSearch = function(input) {
+//search for email in users object
+const emailSearch = function(emailInput) {
   for (let emailKeys in users) {
-    console.log(emailKeys, " - emailKeys");
-    console.log(input, " - input");
-    if (input === users[emailKeys].email) {
-      return true;
+    if (emailInput === users[emailKeys].email) {
+      return users[emailKeys];
     }
   }
-  return false;
+  return null;
 };
 
 //-------------DATABASES------------
@@ -62,11 +60,11 @@ const users = {
 
 //-------------POST----------------
 
-//register
+//Register
 app.post("/register", (req, res) => {
   const {email, password} = req.body;
   const duplicateCheck = emailSearch(req.body.email);
-  console.log(duplicateCheck);
+  // console.log(duplicateCheck);
   // console.log(req.body);
   // console.log(email, password);
   if (!email || !password) {
@@ -84,31 +82,29 @@ app.post("/register", (req, res) => {
   }
 
   users[id] = {
-    id, email, password
+    id,
+    email,
+    password
   };
   res.cookie("user_id", id);
-  // res.send("welcome to the register page");
-  // console.log(req.body.email);
-  // res.cookie("email", req.body.email);
-  
   res.redirect('/urls');
 });
 
-//login
+//Login
 app.post("/login", (req, res) => {
-  // console.log(req.body.username);
-  // res.cookie("username", req.body.username);
-  res.cookie("password", req.body.password);
+  const user = emailSearch(req.body.email);
+
+  res.cookie("user_id", users.id);
   res.redirect('/urls');
 });
 
-//logout
+//Logout
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
-//delete button
+//Delete button
 app.post("/urls/:id/delete", (req, res) =>{
   const id = req.params.id;
   delete urlDatabase[id];
@@ -129,7 +125,7 @@ app.post("/urls", (req, res) => {
   // res.send("Ok, we will replace this."); // Respond with 'Ok' (we will replace this)
 });
 
-//add url to url database
+//Add url to url database
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const newUrl = req.body.newUrl;
@@ -145,8 +141,7 @@ app.post("/urls/:id", (req, res) => {
 //something to help add the username to index
 app.get("/urls", (req, res) => {
   const cookieLogin = req.cookies["user_id"];
-  users[cookieLogin];
-  // console.log(users);
+  console.log(users[cookieLogin]);
   const templateVars = {
     user: users[cookieLogin],
     urls: urlDatabase
@@ -174,6 +169,22 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+//register button
+app.get("/register", (req, res) => {
+  const templateVars = {
+    user: null,
+  };
+  res.render("urls_register", templateVars);
+});
+
+//login button
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: null,
+  };
+  res.render("urls_login", templateVars);
+});
+
 //edit url button
 app.get("/urls/:id", (req, res) => {
   const cookieLogin = req.cookies["user_id"];
@@ -184,6 +195,7 @@ app.get("/urls/:id", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
+
 
 //-------------LISTEN---------------
 
