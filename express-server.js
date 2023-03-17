@@ -27,7 +27,7 @@ const addUrlToDatabase = function(longUrl, shortUrl) {
 };
 
 //search for email in users object
-const emailSearch = function(emailInput) {
+const getUserByEmail = function(emailInput) {
   for (let emailKeys in users) {
     if (emailInput === users[emailKeys].email) {
       return users[emailKeys];
@@ -63,7 +63,7 @@ const users = {
 //Register
 app.post("/register", (req, res) => {
   const {email, password} = req.body;
-  const duplicateCheck = emailSearch(req.body.email);
+  const duplicateCheck = getUserByEmail(req.body.email);
   // console.log(duplicateCheck);
   // console.log(req.body);
   // console.log(email, password);
@@ -88,14 +88,27 @@ app.post("/register", (req, res) => {
   };
   res.cookie("user_id", id);
   res.redirect('/urls');
+  console.log(users);
 });
 
 //Login
 app.post("/login", (req, res) => {
-  const user = emailSearch(req.body.email);
+  const user = getUserByEmail(req.body.email);
+  if (!user) {
+    return res
+      .status(403)
+      .send("email is not linked to an account");
+  }
 
-  res.cookie("user_id", users.id);
+  if (user.password !== req.body.password) {
+    return res
+      .status(403)
+      .send("Password is incorrect");
+  }
+
+  res.cookie("user_id", user.id);
   res.redirect('/urls');
+  
 });
 
 //Logout
