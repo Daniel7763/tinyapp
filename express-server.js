@@ -40,8 +40,16 @@ const getUserByEmail = function(emailInput) {
 
 //url database object
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b2xVn2: "http://www.lighthouselabs.ca",
+  9sm5xK: "http://www.google.com"
+  // b2xVn2: {
+  //   longURL: "http://www.lighthouselabs.ca",
+  //   userID: "aJ48lW",
+  // },
+  // 9sm5xK: {
+  //   longURL: "http://www.google.com",
+  //   userID: "aJ48lW",
+  // },
 };
 
 //users account object
@@ -64,9 +72,7 @@ const users = {
 app.post("/register", (req, res) => {
   const {email, password} = req.body;
   const duplicateCheck = getUserByEmail(req.body.email);
-  // console.log(duplicateCheck);
-  // console.log(req.body);
-  // console.log(email, password);
+
   if (!email || !password) {
     res
       .status(400)
@@ -121,9 +127,6 @@ app.post("/logout", (req, res) => {
 app.post("/urls/:id/delete", (req, res) =>{
   const id = req.params.id;
   delete urlDatabase[id];
-  // console.log("deleted URL");
-  // console.log(req.params);
-
   res.redirect('/urls');
 });
 
@@ -149,6 +152,11 @@ app.post("/urls/:id", (req, res) => {
 // res.end(JSON.stringify(req.body));
 });
 
+//urls not logged in message
+app.post("/urls", (req, res) => {
+  if(!user)
+})
+
 //------------GET---------------
 
 //something to help add the username to index
@@ -168,7 +176,7 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
-//add new url Page/redirect to login if not signed in
+//New url Page/redirect to login if not signed in
 app.get("/urls/new", (req, res) => {
 
   if (!users[req.cookies["user_id"]]) {
@@ -184,13 +192,6 @@ app.get("/urls/new", (req, res) => {
   };
   res.render("urls_new", templateVars);
 });
-
-//redirect to new page if not logged in
-// app.get("/urls/new", (req, res) => {
-//   if (!users[req.cookies["user_id"]]) {
-//     return res.redirect("/login");
-//   }
-// });
 
 //register button/redirects to urls if logged in
 app.get("/register", (req, res) => {
