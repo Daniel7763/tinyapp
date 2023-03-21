@@ -1,10 +1,11 @@
-const { urlDatabase, users } = require("./express-server");
+
+//---------FUNCTIONS----------
 
 //get users account object by searching for email
 const getUserByEmail = (email, users) => {
   for (const userID in users) {
     const user = users[userID];
-    if (email === users[email].email) {
+    if (email === user.email) {
       return user;
     }
   }
@@ -24,8 +25,6 @@ const urlsForUser = (id, urlDatabase) => {
 
 //Add url to database function
 const addUrlToDatabase = function(longUrl, shortUrl, userID) {
-  //--url update--
-  // urlDatabase[shortUrl] = longUrl;
   urlDatabase[shortUrl] = {longUrl, userID};
 };
 
@@ -40,9 +39,39 @@ const generateRandomString = function() {
   return result;
 };
 
+//-------------DATABASES------------
+
+const urlDatabase = {
+  b2xVn2: {
+    longUrl: "http://www.lighthouselabs.ca",
+    userID: "aJ48lW",
+  },
+  '9sm5xK': {
+    longUrl: "http://www.google.com",
+    userID: "aJ48lW",
+  },
+};
+
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
+//---------EXPORT----------
+
 module.exports = {
   getUserByEmail,
   urlsForUser,
   addUrlToDatabase,
   generateRandomString,
+  users,
+  urlDatabase,
 };

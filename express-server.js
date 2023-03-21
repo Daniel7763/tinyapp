@@ -13,85 +13,21 @@ app.use(cookieSession({
   keys: ["secret"],
 }));
 
-//---------FUNCTIONS----------
+//---------FUNCTIONS & DATABASES----------
 
-//get users account object by searching for email
-const getUserByEmail = (email, users) => {
-  for (const userID in users) {
-    const user = users[userID];
-    if (email === user.email) {
-      return user;
-    }
-  }
-  return null;
-};
+const {
+  getUserByEmail,
+  urlsForUser,
+  // addUrlToDatabase,
+  generateRandomString,
+  users,
+  urlDatabase,
+} = require("./helpers.js");
 
-//filter database for a specific users url's
-const urlsForUser = (id, urlDatabase) => {
-  let userURLdata = {};
-  for (const url in urlDatabase) {
-    if (id === urlDatabase[url].userID) {
-      userURLdata[url] = urlDatabase[url];
-    }
-  }
-  return userURLdata;
-};
-
-//Add url to database function
+// Add url to database function
 const addUrlToDatabase = function(longUrl, shortUrl, userID) {
-  //--url update--
-  // urlDatabase[shortUrl] = longUrl;
   urlDatabase[shortUrl] = {longUrl, userID};
 };
-
-//Generate random string function
-const generateRandomString = function() {
-  let chars = 'abcdefghijklmnopqrstuvwxyz123456789';
-  let charLength = chars.length;
-  let result = '';
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * charLength));
-  }
-  return result;
-};
-
-// const {
-//   getUserByEmail,
-//   urlsForUser,
-//   addUrlToDatabase,
-//   generateRandomString,
-// } = require("./helpers.js");
-
-//-------------DATABASES------------
-
-//url database object
-const urlDatabase = {
-  b2xVn2: {
-    longUrl: "http://www.lighthouselabs.ca",
-    userID: "aJ48lW",
-  },
-  '9sm5xK': {
-    longUrl: "http://www.google.com",
-    userID: "aJ48lW",
-  },
-};
-
-//users account object
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-};
-
-//exported for function use in helpers
-module.exports = { urlDatabase, users };
 
 //-------------POST----------------
 
@@ -102,7 +38,6 @@ app.post("/register", (req, res) => {
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
   const duplicateEmail = getUserByEmail(req.body.email, users);
-  
   //--check for empty fields--
   if (!email || !password) {
     return res
@@ -121,7 +56,6 @@ app.post("/register", (req, res) => {
     email: email,
     password: hashedPassword,
   };
-
   req.session.user_id = id;
   res.redirect('/urls');
   return;
@@ -135,28 +69,21 @@ app.post("/login", (req, res) => {
       .status(403)
       .send("email is not linked to an account");
   }
-  // if (user.password !== req.body.password) {
-  //   return res
-  //     .status(403)
-  //     .send("Password is incorrect");
-  // }
   //--store hashed passwords with bcrypt--
   if (!bcrypt.compareSync(req.body.password, user.password)) {
     return res
       .status(400)
       .send("password is incorrect");
   }
-  //added session
-  // res.cookie("user_id", user.id);
   req.session.user_id = user.id;
   res.redirect('/urls');
 });
 
 //LOGOUT
 app.post("/logout", (req, res) => {
-  // res.clearCookie(req.session.user_id);
-  req.session.user_id = null;
+  req.session = null;
   res.redirect('/login');
+  return;
 });
 
 //DELETE BUTTON
@@ -188,18 +115,15 @@ app.post("/urls", (req, res) => {
     return res.send('please login');
   }
   addUrlToDatabase(longUrl, shortUrl, req.session.user_id);
-  return res.redirect(`/urls/${shortUrl}`);
-  // res.send("Ok, we will replace this."); // Respond with 'Ok' (we will replace this)
+  return res.redirect(`/urls`);
 });
 
 //shorturl display/ undefined url
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
-  console.log(id, "--id");
   const userCookie = req.session.user_id;
   //--login request message if click edit on _index while logged out--
   if (!userCookie) {
-    console.log("going from mystery page to login");
     return res.redirect("urls_login");
   }
   //--if user in database--
@@ -226,35 +150,28 @@ app.post("/urls/:id", (req, res) => {
 
 //something to help add the username to index
 app.get("/urls", (req, res) => {
-  //add session
-  //const cookieLogin = req.cookies["user_id"];
   const cookieLogin = req.session.user_id;
-  const templateVars = {
-    //add session
-    // urls: urlsForUser(req.cookies["user_id"], urlDatabase)
+  if (!users[req.session.user_id]) {
+    return res.status(400).send('Please <a href="/login">login</a> to view your URLs');
+  }
+  let templateVars = {
     urls: urlsForUser(req.session.user_id, urlDatabase),
     user: users[cookieLogin],
   };
-  res.render("urls_index", templateVars);
+  return res.render("urls_index", templateVars);
 });
 
 //redirects to short url website
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
-  //--url update--
-  // const longURL = urlDatabase[id];
   const longURL = urlDatabase[id].longUrl;
   res.redirect(longURL);
 });
 
 //New url Page/redirect to login if not signed in
 app.get("/urls/new", (req, res) => {
-  //add session
-  //if (!users[req.cookies["user_id"]]) {
   if (!users[req.session.user_id]) {
-    console.log(req.session.user_id);
-    console.log('going from new to login');
-    return res.status(400).send("user does not match session id");
+    return res.status(400).send('Please <a href="/login">login</a> to create a new URL');
   }
   const templateVars = {
     urls: urlDatabase,
@@ -265,8 +182,6 @@ app.get("/urls/new", (req, res) => {
 
 //register button/redirects to urls if logged in
 app.get("/register", (req, res) => {
-  //add session
-  // if (users[req.cookies["user_id"]]) {
   if (users[req.session.user_id]) {
     return res.redirect("/urls");
   }
@@ -278,15 +193,12 @@ app.get("/register", (req, res) => {
 
 //login page/redirects to urls if logged in
 app.get("/login", (req, res) => {
-  //add session
-  //if (users[req.cookies["user_id"]]) {
   if (users[req.session.user_id]) {
     return res.redirect("/urls");
   }
   const templateVars = {
     user: null,
   };
-  console.log("user logged out");
   res.render("urls_login", templateVars);
 });
 
@@ -299,12 +211,10 @@ app.get("/urls/:id", (req, res) => {
   }
   //--url does not exist/ send error message--
   if (!urlDatabase[req.params.id]) {
-    // console.log(req.params.id);
     return res
       .status(400)
       .send("url does not exist");
   }
- 
   //--if cookie does not match logged in user/ send to login--
   if (urlDatabase[req.params.id].userID !== cookieLogin) {
     return res
@@ -317,6 +227,14 @@ app.get("/urls/:id", (req, res) => {
     longUrl: urlDatabase[req.params.id].longUrl,
   };
   return res.render("urls_show", templateVars);
+});
+
+app.get("/", (req, res) => {
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 
