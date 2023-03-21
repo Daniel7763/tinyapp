@@ -148,7 +148,7 @@ app.post("/login", (req, res) => {
   }
   //added session
   // res.cookie("user_id", user.id);
-  req.session.user_id = "userID";
+  req.session.user_id = user.id;
   res.redirect('/urls');
 });
 
@@ -254,7 +254,7 @@ app.get("/urls/new", (req, res) => {
   if (!users[req.session.user_id]) {
     console.log(req.session.user_id);
     console.log('going from new to login');
-    return res.redirect("/login");
+    return res.status(400).send("user does not match session id");
   }
   const templateVars = {
     urls: urlDatabase,
